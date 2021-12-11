@@ -1,0 +1,9 @@
+{
+  "name": "but-schedule-server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:wvffle/but-schedule-server.git",
+  "author": "Kasper Seweryn <github@wvffle.net>",
+  "license": "AGPL",
+  "private": true
+}
