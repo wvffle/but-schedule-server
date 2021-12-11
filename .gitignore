@@ -128,3 +128,5 @@ dist
 
 # IntelliJ Idea
 .idea/
+database/store/*
+!database/store/.gitkeep
