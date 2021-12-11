@@ -153,7 +153,7 @@ const calculateDiff = (a, b) => {
   return diffs
 }
 
-const checkUpdates = async () => {
+export const checkUpdates = async () => {
   const [fetched, lastUpdate] = await Promise.all([
     fetchSchedule(),
     db.updates.findOne().sort({ date: 'desc' }).exec()
@@ -202,7 +202,4 @@ const checkUpdates = async () => {
     date: +new Date(),
     diff
   })
-
 }
-
-checkUpdates().then(console.log)
