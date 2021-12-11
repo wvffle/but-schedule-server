@@ -1,5 +1,6 @@
 import fastify from 'fastify'
 import peekaboo from 'fastify-peekaboo'
+import zip from 'lodash.zipobject'
 
 import { db } from './database/database.js'
 import { checkUpdates } from './parser.js'
@@ -17,8 +18,19 @@ app.get('/updates', async (request) => {
   .exec()
 })
 
+app.get('/updates/details/:hash', async (request) => {
+  const update = await db.updates.findOne(request.params.hash).exec()
+  if (!update) {
+    return null
+  }
+
+  const keys = Object.keys(update.data)
+  const values = await Promise.all(keys.map(key => db[key].findByIds(update.data[key])))
+  return zip(keys, values.map(map => [...map.values()]))
+})
+
 app.get('/updates/:hash', async (request) => {
-  return db.updates.findOne(request.params.hash) .exec()
+  return db.updates.findOne(request.params.hash).exec()
 })
 
 for (const key of ['rooms', 'titles', 'degrees', 'subjects', 'specialities', 'teachers', 'schedules']) {
