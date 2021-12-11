@@ -159,6 +159,10 @@ export const checkUpdates = async () => {
     db.updates.findOne().sort({ date: 'desc' }).exec()
   ])
 
+  if (!fetched) {
+    return null
+  }
+
   const data = parseData(fetched, lastUpdate?.hash)
   const diff = calculateDiff(lastUpdate?.data ?? {}, data)
 
