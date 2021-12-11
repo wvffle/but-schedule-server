@@ -4,6 +4,7 @@ import zip from 'lodash.zipobject'
 
 import { db } from './database/database.js'
 import { checkUpdates } from './parser.js'
+import pluralize from 'pluralize'
 
 const CACHE_MS = 600000 /* 10 minutes */
 
@@ -31,6 +32,30 @@ app.get('/updates/details/:hash', async (request) => {
 
 app.get('/updates/:hash', async (request) => {
   return db.updates.findOne(request.params.hash).exec()
+})
+
+app.get('/diff/:hash', async (request) => {
+  const update = await db.updates.findOne(request.params.hash).exec()
+  if (!update) {
+    return null
+  }
+
+  const keys = Object.keys(update.diff)
+  const values = await Promise.all(keys.map(key => db[key].findByIds(update.diff[key].map(diff => diff[pluralize(key, 1)]))))
+
+  const res = {}
+  for (let i = 0; i < keys.length; ++i) {
+    const key = keys[i]
+    res[key] = update.diff[key].map((data, j) => {
+      const [value] = Object.keys(data).filter(key => key !== 'type')
+      return {
+        type: data.type,
+        value: values[i].get(data[value])
+      }
+    })
+  }
+
+  return res
 })
 
 for (const key of ['rooms', 'titles', 'degrees', 'subjects', 'specialities', 'teachers', 'schedules']) {
