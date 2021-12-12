@@ -85,7 +85,7 @@ for (const key of ['rooms', 'titles', 'degrees', 'subjects', 'specialities', 'te
 
 db.updates.insert$.subscribe(({ documentData }) => {
   const { hash } = documentData
-  // TODO: Push notification using Pushy.me/FCM
+  // TODO : Push notification using Pushy.me/FCM
 })
 
 // NOTE: Check the updates at start and periodically
@@ -97,8 +97,8 @@ Promise.resolve().then(async () => {
 try {
   await app.listen(process.env.PORT ?? 2137, '0.0.0.0')
 
-  fastify.blipp()
-  console.log(`server is running on ${fastify.server.address().port}`)
+  app.blipp()
+  console.log(`server is running on ${app.server.address().port}`)
 } catch (err) {
   console.error(err)
   process.exit(1)
