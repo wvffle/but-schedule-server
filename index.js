@@ -1,12 +1,15 @@
 import fastify from 'fastify'
 import peekaboo from 'fastify-peekaboo'
 import zip from 'lodash.zipobject'
+import pluralize from 'pluralize'
+import dotenv from 'dotenv'
 
 import { db } from './database/database.js'
 import { checkUpdates } from './parser.js'
-import pluralize from 'pluralize'
 
 const CACHE_MS = 600000 /* 10 minutes */
+
+dotenv.config()
 
 const app = fastify()
 await app.register(peekaboo, {
@@ -89,4 +92,9 @@ Promise.resolve().then(async () => {
   setInterval(checkUpdates, CACHE_MS)
 })
 
-await app.listen(process.env.PORT ?? 2137)
+await app.listen(process.env.PORT ?? 2137, '0.0.0.0', (err) => {
+  if (err) {
+    console.error(err)
+    process.exit(1)
+  }
+})
