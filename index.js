@@ -1,5 +1,6 @@
 import fastify from 'fastify'
 import peekaboo from 'fastify-peekaboo'
+import blipp from 'fastify-blipp'
 import zip from 'lodash.zipobject'
 import pluralize from 'pluralize'
 import dotenv from 'dotenv'
@@ -12,6 +13,7 @@ const CACHE_MS = 600000 /* 10 minutes */
 dotenv.config()
 
 const app = fastify()
+await app.register(blipp)
 await app.register(peekaboo, {
   expire: CACHE_MS
 })
@@ -92,9 +94,12 @@ Promise.resolve().then(async () => {
   setInterval(checkUpdates, CACHE_MS)
 })
 
-await app.listen(process.env.PORT ?? 2137, '0.0.0.0', (err) => {
-  if (err) {
-    console.error(err)
-    process.exit(1)
-  }
-})
+try {
+  await app.listen(process.env.PORT ?? 2137, '0.0.0.0')
+
+  fastify.blipp()
+  console.log(`server is running on ${fastify.server.address().port}`)
+} catch (err) {
+  console.error(err)
+  process.exit(1)
+}
