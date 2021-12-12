@@ -82,4 +82,4 @@ Promise.resolve().then(async () => {
   setInterval(checkUpdates, CACHE_MS)
 })
 
-await app.listen(2137)
+await app.listen(process.env.PORT ?? 2137)
