@@ -13,6 +13,13 @@ await app.register(peekaboo, {
   expire: CACHE_MS
 })
 
+app.get('/', async () => {
+    return {
+        license: 'AGPL',
+        authors: ['Kasper Seweryn (wvffle.net)']
+    }
+})
+
 app.get('/updates', async (request) => {
   return db.updates.find()
   .sort({ date: 'desc' })
