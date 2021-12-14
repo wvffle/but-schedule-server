@@ -5,6 +5,7 @@ export default {
   type: 'object',
   keyCompression: true,
   properties: {
+    id: { type: 'number' },
     hash: { type: 'string' },
     name: { type: 'string' },
     shortName: { type: 'string' },

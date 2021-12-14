@@ -1,12 +1,12 @@
 export default {
-  title: 'room schema',
+  title: 'hash schema',
   version: 0,
   primaryKey: 'hash',
   type: 'object',
   keyCompression: true,
+  indexes: ['id'],
   properties: {
-    id: { type: 'number' },
     hash: { type: 'string' },
-    name: { type: 'string' }
+    id: { type: 'number' }
   }
 }

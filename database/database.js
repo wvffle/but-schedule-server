@@ -9,6 +9,7 @@ import speciality from './schemas/speciality.js'
 import subject from './schemas/subject.js'
 import schedule from './schemas/schedule.js'
 import update from './schemas/update.js'
+import hash from './schemas/hash.js'
 
 addPouchPlugin(webSqlPouch)
 export const db = await createRxDatabase({
@@ -47,5 +48,9 @@ await db.addCollections({
 
   updates: {
     schema: update
+  },
+
+  hashes: {
+    schema: hash
   },
 })

@@ -160,6 +160,7 @@ export const checkUpdates = async () => {
   ])
 
   if (!fetched) {
+    console.log('No data fetched from the server')
     return null
   }
 
@@ -168,21 +169,42 @@ export const checkUpdates = async () => {
 
   // NOTE: Diff is empty, lets return the latest update
   if (!Object.values(diff).reduce((a, arr) => a + arr.length, 0)) {
+    console.log('No new diff found')
     return lastUpdate
   }
 
+  console.log('New diff found')
+
+  let lastId = await db.hashes.findOne().sort('-id').exec().then(last => last?.id ?? 0)
+  console.debug(`last id: ${lastId}`)
+  const hashes = { [data.hash]: ++lastId }
+  for (const objects of Object.values(data)) {
+    if (!Array.isArray(objects)) {
+      continue
+    }
+
+    for (const object of objects) {
+      hashes[object.hash] = ++lastId
+    }
+  }
+
+  await db.hashes.bulkInsert(
+    Object.entries(hashes).map(([hash, id]) => ({ hash, id }))
+  )
+
   const results = await Promise.all([
-    db.rooms.bulkInsert(data.rooms.map(value => fix(value, room))),
-    db.titles.bulkInsert(data.titles.map(value => fix(value, title))),
-    db.degrees.bulkInsert(data.degrees.map(value => fix(value, degree))),
-    db.subjects.bulkInsert(data.subjects.map(value => fix(value, subject))),
-    db.specialities.bulkInsert(data.specialities.map(value => fix(value, speciality))),
+    db.rooms.bulkInsert(data.rooms.map(value => fix({ ...value, id: hashes[value.hash] }, room))),
+    db.titles.bulkInsert(data.titles.map(value => fix({ ...value, id: hashes[value.hash] }, title))),
+    db.degrees.bulkInsert(data.degrees.map(value => fix({ ...value, id: hashes[value.hash] }, degree))),
+    db.subjects.bulkInsert(data.subjects.map(value => fix({ ...value, id: hashes[value.hash] }, subject))),
+    db.specialities.bulkInsert(data.specialities.map(value => fix({ ...value, id: hashes[value.hash] }, speciality))),
   ])
 
   // NOTE: teachers depend on titles and schedules depend on teachers, thus they're inserted synchronously
-  results.push(await db.teachers.bulkInsert(data.teachers.map(value => fix(value, teacher))))
-  results.push(await db.schedules.bulkInsert(data.schedules.map(value => fix(value, schedule))))
+  results.push(await db.teachers.bulkInsert(data.teachers.map(value => fix({ ...value, id: hashes[value.hash] }, teacher))))
+  results.push(await db.schedules.bulkInsert(data.schedules.map(value => fix({ ...value, id: hashes[value.hash] }, schedule))))
 
+    console.log('inserted new data')
   // NOTE: Let's ignore errors about elements already existing
   const errors = results
     .reduce((acc, { error }) => [...acc, ...error], [])
@@ -193,6 +215,7 @@ export const checkUpdates = async () => {
   }
 
   return db.updates.insert({
+    id: hashes[data.hash],
     hash: data.hash,
     data: {
       rooms: data.rooms.map(({ hash }) => hash),

@@ -5,6 +5,7 @@ export default {
   type: 'object',
   keyCompression: true,
   properties: {
+    id: { type: 'number' },
     hash: { type: 'string' },
     day: { type: 'number', minimum: 1, maximum: 7 },
     hour: { type: 'number', minimum: 1 },

@@ -90,8 +90,8 @@ db.updates.insert$.subscribe(({ documentData }) => {
 
 // NOTE: Check the updates at start and periodically
 Promise.resolve().then(async () => {
-  await checkUpdates()
-  setInterval(checkUpdates, CACHE_MS)
+  await checkUpdates().catch(console.error)
+  setInterval(() => checkUpdates().catch(console.error), CACHE_MS)
 })
 
 try {

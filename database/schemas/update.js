@@ -6,6 +6,7 @@ export default {
   keyCompression: true,
   indexes: ['date'],
   properties: {
+    id: { type: 'number' },
     hash: { type: 'string' },
     date: { type: 'number' },
     data: {
