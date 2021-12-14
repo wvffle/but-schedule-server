@@ -214,7 +214,7 @@ export const checkUpdates = async () => {
     console.error(errors)
   }
 
-  return db.updates.insert({
+  const result = await db.updates.insert({
     id: hashes[data.hash],
     hash: data.hash,
     data: {
@@ -229,4 +229,7 @@ export const checkUpdates = async () => {
     date: +new Date(),
     diff
   })
+
+  console.log('inserted an update')
+  return result
 }
