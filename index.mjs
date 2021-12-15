@@ -47,7 +47,7 @@ app.get('/updates/details/:hash', async (request) => {
   const update = await db.Update.findOne({
     where: {
       [Op.or]: [
-        { id: hash },
+        { id: isNaN(+hash) ? -1 : hash },
         { hash }
       ]
     }
@@ -75,7 +75,7 @@ app.get('/updates/:hash', async (request) => {
   return db.Update.findOne({
     where: {
       [Op.or]: [
-        { id: hash },
+        { id: isNaN(+hash) ? -1 : hash },
         { hash }
       ]
     }
@@ -87,7 +87,7 @@ app.get('/diff/:hash', async (request) => {
   const update = await db.Update.findOne({
     where: {
       [Op.or]: [
-        { id: hash },
+        { id: isNaN(+hash) ? -1 : hash },
         { hash }
       ]
     }
@@ -131,7 +131,7 @@ for (const key of ['rooms', 'titles', 'degrees', 'subjects', 'specialities', 'te
     return modelMap[key].findOne({
       where: {
         [Op.or]: [
-          { id: hash },
+          { id: isNaN(+hash) ? -1 : hash },
           { hash }
         ]
       }
