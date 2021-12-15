@@ -208,6 +208,8 @@ export const checkUpdates = async () => {
     diff
   })
 
+  db.emit('update', result)
+
   console.log('inserted an update')
   return result
 }

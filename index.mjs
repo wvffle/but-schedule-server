@@ -139,10 +139,11 @@ for (const key of ['rooms', 'titles', 'degrees', 'subjects', 'specialities', 'te
   })
 }
 
-// db.updates.insert$.subscribe(({ documentData }) => {
-//   const { hash } = documentData
-//   // TODO : Push notification using Pushy.me/FCM
-// })
+db.on('update', (update) => {
+  const hash = update.get('hash')
+  // TODO : Push notification using Pushy.me/FCM
+  console.log('hash')
+})
 
 // NOTE: Check the updates at start and periodically
 Promise.resolve().then(async () => {
@@ -152,8 +153,8 @@ Promise.resolve().then(async () => {
 
 try {
   await app.listen(process.env.PORT ?? 2137, '0.0.0.0')
-
   app.blipp()
+
   console.log(`server is running on ${app.server.address().port}`)
 } catch (err) {
   console.error(err)
