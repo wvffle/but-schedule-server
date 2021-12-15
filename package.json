@@ -27,6 +27,7 @@
     "standard": "^16.0.4"
   },
   "scripts": {
-    "start": "node index.mjs"
+    "start": "node index.mjs",
+    "build": "sequelize-cli db:migrate"
   }
 }
