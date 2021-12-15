@@ -1,0 +1,24 @@
+name: Create issues from todos
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  todos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+
+      - uses: wvffle/todo-actions@master
+        with:
+          collect_commit_msg: 'chore(todo): collect new todos'
+          reference_commit_msg: 'chore(todo): add references to new todos'
+          reference_commit_body: 'New issues: %s'
+
+        env:
+          GITHUB_TOKEN: ${{ secrets.TODO_ACTIONS_ADMIN }}
+          TODO_ACTIONS_MONGO_URL: ${{ secrets.TODO_ACTIONS_MONGO_URL }}

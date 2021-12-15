@@ -2,31 +2,8 @@ import axios from 'axios'
 import { XMLParser } from 'fast-xml-parser'
 import arrDiff from 'arr-diff'
 import objHash from 'object-hash'
-import { db } from './database/database.js'
+import db from './models/index.js'
 import pluralize from 'pluralize'
-
-import room from './database/schemas/room.js'
-import teacher from './database/schemas/teacher.js'
-import title from './database/schemas/title.js'
-import degree from './database/schemas/degree.js'
-import speciality from './database/schemas/speciality.js'
-import subject from './database/schemas/subject.js'
-import schedule from './database/schemas/schedule.js'
-import update from './database/schemas/update.js'
-
-const fix = (object, { properties }) => {
-  for (const key in object) {
-    if (key in properties) {
-      if (properties[key].type === 'string') {
-        object[key] = (object[key] ?? '').toString()
-      }
-    } else {
-      delete object[key]
-    }
-  }
-
-  return object
-}
 
 const XML_URL = 'https://degra.wi.pb.edu.pl/rozklady/webservices.php'
 const KEY_MAP = {
@@ -156,7 +133,9 @@ const calculateDiff = (a, b) => {
 export const checkUpdates = async () => {
   const [fetched, lastUpdate] = await Promise.all([
     fetchSchedule(),
-    db.updates.findOne().sort({ date: 'desc' }).exec()
+    db.Update.findOne({
+      order: [['date', 'DESC']]
+    })
   ])
 
   if (!fetched) {
@@ -175,47 +154,46 @@ export const checkUpdates = async () => {
 
   console.log('New diff found')
 
-  let lastId = await db.hashes.findOne().sort('-id').exec().then(last => last?.id ?? 0)
-  console.debug(`last id: ${lastId}`)
-  const hashes = { [data.hash]: ++lastId }
-  for (const objects of Object.values(data)) {
-    if (!Array.isArray(objects)) {
-      continue
-    }
-
-    for (const object of objects) {
-      hashes[object.hash] = ++lastId
-    }
-  }
-
-  await db.hashes.bulkInsert(
-    Object.entries(hashes).map(([hash, id]) => ({ hash, id }))
-  )
-
   const results = await Promise.all([
-    db.rooms.bulkInsert(data.rooms.map(value => fix({ ...value, id: hashes[value.hash] }, room))),
-    db.titles.bulkInsert(data.titles.map(value => fix({ ...value, id: hashes[value.hash] }, title))),
-    db.degrees.bulkInsert(data.degrees.map(value => fix({ ...value, id: hashes[value.hash] }, degree))),
-    db.subjects.bulkInsert(data.subjects.map(value => fix({ ...value, id: hashes[value.hash] }, subject))),
-    db.specialities.bulkInsert(data.specialities.map(value => fix({ ...value, id: hashes[value.hash] }, speciality))),
+    db.Room.bulkCreate(data.rooms, { ignoreDuplicates: true }),
+    db.Title.bulkCreate(data.titles, { ignoreDuplicates: true }),
+    db.Degree.bulkCreate(data.degrees, { ignoreDuplicates: true }),
+    db.Subject.bulkCreate(data.subjects, { ignoreDuplicates: true }),
+    db.Speciality.bulkCreate(data.specialities, { ignoreDuplicates: true }),
   ])
 
-  // NOTE: teachers depend on titles and schedules depend on teachers, thus they're inserted synchronously
-  results.push(await db.teachers.bulkInsert(data.teachers.map(value => fix({ ...value, id: hashes[value.hash] }, teacher))))
-  results.push(await db.schedules.bulkInsert(data.schedules.map(value => fix({ ...value, id: hashes[value.hash] }, schedule))))
-
-    console.log('inserted new data')
-  // NOTE: Let's ignore errors about elements already existing
-  const errors = results
-    .reduce((acc, { error }) => [...acc, ...error], [])
-    .filter(({ status }) => status !== 409)
-
-  if (errors.length) {
-    console.error(errors)
+  const hashes = {}
+  for (const models of results) {
+    for (const model of models) {
+      hashes[model.get('hash')] = model.get('id')
+    }
   }
 
-  const result = await db.updates.insert({
-    id: hashes[data.hash],
+  // NOTE: Let's update the teachers title hash to an id
+  data.teachers = data.teachers.map(teacher => {
+    teacher.title = hashes[teacher.title] ?? null
+    return teacher
+  })
+
+  // NOTE: Teachers depend on titles and schedules depend on teachers, thus they're inserted synchronously
+  const teachers = await db.Teacher.bulkCreate(data.teachers, { ignoreDuplicates: true })
+  for (const teacher of teachers) {
+    hashes[teacher.get('hash')] = teacher.get('id')
+  }
+
+  // NOTE: Let's update the schedule attributes hashes to ids
+  data.schedules = data.schedules.map(schedule => {
+    for (const attr of ['teacher', 'room', 'subject', 'degree', 'speciality']) {
+      schedule[attr] = hashes[schedule[attr]] ?? null
+    }
+
+    return schedule
+  })
+
+  await db.Schedule.bulkCreate(data.schedules, { ignoreDuplicates: true })
+  console.log('inserted new data')
+
+  const result = await db.Update.create({
     hash: data.hash,
     data: {
       rooms: data.rooms.map(({ hash }) => hash),
@@ -226,7 +204,7 @@ export const checkUpdates = async () => {
       schedules: data.schedules.map(({ hash }) => hash),
       specialities: data.specialities.map(({ hash }) => hash),
     },
-    date: +new Date(),
+    date: new Date(),
     diff
   })
 

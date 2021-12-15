@@ -1,12 +1,11 @@
 {
   "name": "but-schedule-server",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "index.mjs",
   "repository": "git@github.com:wvffle/but-schedule-server.git",
   "author": "Kasper Seweryn <github@wvffle.net>",
   "license": "AGPL",
   "private": true,
-  "type": "module",
   "dependencies": {
     "arr-diff": "^4.0.0",
     "axios": "^0.24.0",
@@ -20,13 +19,14 @@
     "object-hash": "^2.2.0",
     "pluralize": "^8.0.0",
     "pouchdb-adapter-node-websql": "^7.0.0",
-    "rxdb": "^10.5.4",
-    "rxjs": "^7.4.0"
+    "rxjs": "^7.4.0",
+    "sequelize": "^6.12.0-beta.3"
   },
   "devDependencies": {
+    "sequelize-cli": "^6.3.0",
     "standard": "^16.0.4"
   },
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.mjs"
   }
 }
