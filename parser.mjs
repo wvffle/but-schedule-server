@@ -1,8 +1,8 @@
 import axios from 'axios'
 import { XMLParser } from 'fast-xml-parser'
-import arrDiff from 'arr-diff'
 import objHash from 'object-hash'
 import db from './models/index.js'
+import { diff } from './diff.mjs'
 import pluralize from 'pluralize'
 
 const XML_URL = 'https://degra.wi.pb.edu.pl/rozklady/webservices.php'
@@ -33,16 +33,6 @@ const KEY_MAP = {
   IM_SK: 'initials',
   ID_TYT: 'title',
   NAZ_SK: 'shortName'
-}
-
-const diff = (lhs, rhs, key = 'value') => {
-  const added = arrDiff(rhs, lhs)
-  const removed = arrDiff(lhs, rhs)
-
-  return [
-    ...added.map(value => ({ type: '+', [key]: value })),
-    ...removed.map(value => ({ type: '-', [key]: value }))
-  ]
 }
 
 export const fetchSchedule = async () => {
@@ -124,7 +114,7 @@ const calculateDiff = (a, b) => {
     const lhs = data.lhs.map(entry => entry?.hash ?? entry)
     const rhs = data.rhs.map(entry => entry?.hash ?? entry)
 
-    diffs[key] = diff(lhs, rhs, pluralize(key, 1))
+    diffs[key] = diff(lhs, rhs, 'hash')
   }
 
   return diffs
@@ -196,13 +186,13 @@ export const checkUpdates = async () => {
   const result = await db.Update.create({
     hash: data.hash,
     data: {
-      rooms: data.rooms.map(({ hash }) => hash),
-      titles: data.titles.map(({ hash }) => hash),
-      degrees: data.degrees.map(({ hash }) => hash),
-      subjects: data.subjects.map(({ hash }) => hash),
-      teachers: data.teachers.map(({ hash }) => hash),
-      schedules: data.schedules.map(({ hash }) => hash),
-      specialities: data.specialities.map(({ hash }) => hash),
+      rooms: data.rooms.map(({ id }) => id),
+      titles: data.titles.map(({ id }) => id),
+      degrees: data.degrees.map(({ id }) => id),
+      subjects: data.subjects.map(({ id }) => id),
+      teachers: data.teachers.map(({ id }) => id),
+      schedules: data.schedules.map(({ id }) => id),
+      specialities: data.specialities.map(({ id }) => id),
     },
     date: new Date(),
     diff

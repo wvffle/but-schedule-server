@@ -42,7 +42,7 @@ app.get('/updates', async (request) => {
   })
 })
 
-app.get('/updates/details/:hash', async (request) => {
+app.get('/updates/:hash', async (request) => {
   const { hash } = request.params
   const update = await db.Update.findOne({
     where: {
@@ -66,20 +66,12 @@ app.get('/updates/details/:hash', async (request) => {
     }
   })))
 
-  return zip(keys, values)
-})
-
-app.get('/updates/:hash', async (request) => {
-  const { hash } = request.params
-  console.log(hash)
-  return db.Update.findOne({
-    where: {
-      [Op.or]: [
-        { id: isNaN(+hash) ? -1 : hash },
-        { hash }
-      ]
-    }
-  })
+  return {
+    id: update.id,
+    hash: update.hash,
+    diff: update.diff,
+    data: zip(keys, values)
+  }
 })
 
 app.get('/diff/:hash', async (request) => {
@@ -101,7 +93,7 @@ app.get('/diff/:hash', async (request) => {
   const values = await Promise.all(keys.map(key => modelMap[key].findAll({
     where: {
       hash: {
-        [Op.or]: update.diff[key].map(diff => diff[pluralize(key, 1)])
+        [Op.or]: update.diff[key].map(diff => diff.hash)
       }
     }
   })))
@@ -142,7 +134,7 @@ for (const key of ['rooms', 'titles', 'degrees', 'subjects', 'specialities', 'te
 db.on('update', (update) => {
   const hash = update.get('hash')
   // TODO : Push notification using Pushy.me/FCM
-  console.log('hash')
+  console.log(hash)
 })
 
 // NOTE: Check the updates at start and periodically
