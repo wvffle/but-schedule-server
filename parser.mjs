@@ -134,7 +134,24 @@ export const checkUpdates = async () => {
   }
 
   const data = parseData(fetched, lastUpdate?.hash)
-  const diff = calculateDiff(lastUpdate?.data ?? {}, data)
+  const dataToDiff = Object.entries(lastUpdate?.data)
+    .map(([key, values]) => {
+      return [key, values.map(value => {
+        // NOTE: support old database entries
+        if (typeof value === 'string') {
+          return value
+        }
+
+        return value.hash
+      })]
+    })
+    .reduce((acc, [key, values]) => {
+      acc[key] ??= []
+      acc[key].push(...values)
+      return acc
+    }, {})
+  const diff = calculateDiff(dataToDiff ?? {}, data)
+
 
   // NOTE: Diff is empty, lets return the latest update
   if (!Object.values(diff).reduce((a, arr) => a + arr.length, 0)) {
@@ -186,13 +203,13 @@ export const checkUpdates = async () => {
   const result = await db.Update.create({
     hash: data.hash,
     data: {
-      rooms: data.rooms.map(({ id }) => id),
-      titles: data.titles.map(({ id }) => id),
-      degrees: data.degrees.map(({ id }) => id),
-      subjects: data.subjects.map(({ id }) => id),
-      teachers: data.teachers.map(({ id }) => id),
-      schedules: data.schedules.map(({ id }) => id),
-      specialities: data.specialities.map(({ id }) => id),
+      rooms: data.rooms.map(({ id, hash }) => ({ id, hash })),
+      titles: data.titles.map(({ id, hash }) => ({ id, hash })),
+      degrees: data.degrees.map(({ id, hash }) => ({ id, hash })),
+      subjects: data.subjects.map(({ id, hash }) => ({ id, hash })),
+      teachers: data.teachers.map(({ id, hash }) => ({ id, hash })),
+      schedules: data.schedules.map(({ id, hash }) => ({ id, hash })),
+      specialities: data.specialities.map(({ id, hash }) => ({ id, hash })),
     },
     date: new Date(),
     diff
