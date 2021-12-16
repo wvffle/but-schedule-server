@@ -146,8 +146,7 @@ export const checkUpdates = async () => {
       })]
     })
     .reduce((acc, [key, values]) => {
-      acc[key] ??= []
-      acc[key].push(...values.filter(i => i))
+      acc[key] = values.filter(i => i)
       return acc
     }, {})
   const diff = calculateDiff(dataToDiff ?? {}, data)
