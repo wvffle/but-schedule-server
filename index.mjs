@@ -68,7 +68,7 @@ app.get('/updates/:hash', async (request) => {
   const values = await Promise.all(keys.map(key => modelMap[key].findAll({
     where: {
       id: {
-        [Op.or]: update.data[key]?.id
+        [Op.or]: update.data[key].map(({ id }) => id)
       }
     }
   })))
