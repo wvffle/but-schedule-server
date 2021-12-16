@@ -134,7 +134,7 @@ export const checkUpdates = async () => {
   }
 
   const data = parseData(fetched, lastUpdate?.hash)
-  const dataToDiff = Object.entries(lastUpdate?.data)
+  const dataToDiff = Object.entries(lastUpdate?.data ?? {})
     .map(([key, values]) => {
       return [key, values.map(value => {
         // NOTE: drop support old database entries
@@ -196,7 +196,16 @@ export const checkUpdates = async () => {
     return schedule
   })
 
-  await db.Schedule.bulkCreate(data.schedules, { ignoreDuplicates: true })
+  for (const schedule of await db.Schedule.bulkCreate(data.schedules, { ignoreDuplicates: true })) {
+    hashes[schedule.get('hash')] = schedule.get('id')
+  }
+
+  // NOTE: Update ids
+  data.schedules = data.schedules.map(schedule => {
+    schedule.id = hashes[schedule.hash] ?? null
+    return schedule
+  })
+
   console.log('inserted new data')
 
   const result = await db.Update.create({

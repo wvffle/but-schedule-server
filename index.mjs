@@ -65,6 +65,7 @@ app.get('/updates/:hash', async (request) => {
   }
 
   const keys = Object.keys(update.data)
+  console.log(keys)
   const values = await Promise.all(keys.map(key => modelMap[key].findAll({
     where: {
       id: {
