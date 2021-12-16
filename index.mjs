@@ -37,8 +37,15 @@ app.get('/', async () => {
 })
 
 app.get('/updates', async (request) => {
-  return db.Update.findAll({
+  const updates = await db.Update.findAll({
     order: [['date', 'DESC']]
+  })
+
+  return updates.map(update => {
+    return {
+      id: update.id,
+      hash: update.hash
+    }
   })
 })
 
@@ -60,8 +67,8 @@ app.get('/updates/:hash', async (request) => {
   const keys = Object.keys(update.data)
   const values = await Promise.all(keys.map(key => modelMap[key].findAll({
     where: {
-      hash: {
-        [Op.or]: update.data[key]
+      id: {
+        [Op.or]: update.data[key]?.id
       }
     }
   })))

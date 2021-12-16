@@ -137,9 +137,9 @@ export const checkUpdates = async () => {
   const dataToDiff = Object.entries(lastUpdate?.data)
     .map(([key, values]) => {
       return [key, values.map(value => {
-        // NOTE: support old database entries
+        // NOTE: drop support old database entries
         if (typeof value === 'string') {
-          return value
+          return null
         }
 
         return value.hash
@@ -147,7 +147,7 @@ export const checkUpdates = async () => {
     })
     .reduce((acc, [key, values]) => {
       acc[key] ??= []
-      acc[key].push(...values)
+      acc[key].push(...values.filter(i => i))
       return acc
     }, {})
   const diff = calculateDiff(dataToDiff ?? {}, data)
