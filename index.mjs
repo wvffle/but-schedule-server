@@ -44,7 +44,8 @@ app.get('/updates', async (request) => {
   return updates.map(update => {
     return {
       id: update.id,
-      hash: update.hash
+      hash: update.hash,
+      date: update.date
     }
   })
 })
@@ -65,7 +66,6 @@ app.get('/updates/:hash', async (request) => {
   }
 
   const keys = Object.keys(update.data)
-  console.log(keys)
   const values = await Promise.all(keys.map(key => modelMap[key].findAll({
     where: {
       id: {
@@ -77,6 +77,7 @@ app.get('/updates/:hash', async (request) => {
   return {
     id: update.id,
     hash: update.hash,
+    date: update.date,
     diff: update.diff,
     data: zip(keys, values)
   }
