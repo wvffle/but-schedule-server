@@ -35,6 +35,17 @@ const KEY_MAP = {
   NAZ_SK: 'shortName'
 }
 
+const { Op } = db.Sequelize
+const modelMap = {
+  rooms: db.Room,
+  titles: db.Title,
+  degrees: db.Degree,
+  subjects: db.Subject,
+  specialities: db.Speciality,
+  teachers: db.Teacher,
+  schedules: db.Schedule
+}
+
 export const fetchSchedule = async () => {
   const { data: xml } = await axios.get(XML_URL)
   const parser = new XMLParser()
@@ -149,6 +160,7 @@ export const checkUpdates = async () => {
       acc[key] = values.filter(i => i)
       return acc
     }, {})
+
   const diff = calculateDiff(dataToDiff ?? {}, data)
 
 
@@ -160,6 +172,21 @@ export const checkUpdates = async () => {
 
   console.log('New diff found')
 
+  const hashes = {}
+  const existingModels = await Promise.all(Object.keys(modelMap).map(key => modelMap[key].findAll({
+    where: {
+      hash: {
+        [Op.or]: data[key].map(({ hash }) => hash)
+      }
+    }
+  })))
+
+  for (const models of existingModels) {
+    for (const model of models) {
+      hashes[model.get('hash')] = model.get('id')
+    }
+  }
+
   const results = await Promise.all([
     db.Room.bulkCreate(data.rooms, { ignoreDuplicates: true }),
     db.Title.bulkCreate(data.titles, { ignoreDuplicates: true }),
@@ -168,7 +195,6 @@ export const checkUpdates = async () => {
     db.Speciality.bulkCreate(data.specialities, { ignoreDuplicates: true }),
   ])
 
-  const hashes = {}
   for (const models of results) {
     for (const model of models) {
       hashes[model.get('hash')] = model.get('id')
@@ -184,7 +210,9 @@ export const checkUpdates = async () => {
   // NOTE: Teachers depend on titles and schedules depend on teachers, thus they're inserted synchronously
   const teachers = await db.Teacher.bulkCreate(data.teachers, { ignoreDuplicates: true })
   for (const teacher of teachers) {
-    hashes[teacher.get('hash')] = teacher.get('id')
+    if (teacher.get('id')) {
+      hashes[teacher.get('hash')] = teacher.get('id')
+    }
   }
 
   // NOTE: Let's update the schedule attributes hashes to ids
@@ -197,7 +225,9 @@ export const checkUpdates = async () => {
   })
 
   for (const schedule of await db.Schedule.bulkCreate(data.schedules, { ignoreDuplicates: true })) {
-    hashes[schedule.get('hash')] = schedule.get('id')
+    if (schedule.get('id')) {
+      hashes[schedule.get('hash')] = schedule.get('id')
+    }
   }
 
   // NOTE: Update ids
