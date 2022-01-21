@@ -130,3 +130,5 @@ dist
 .idea/
 database/store/*
 !database/store/.gitkeep
+
+fcm-cert.json

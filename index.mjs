@@ -7,6 +7,20 @@ import dotenv from 'dotenv'
 
 import db from './models/index.js'
 import { checkUpdates } from './parser.mjs'
+import admin from 'firebase-admin'
+import { readFile } from 'fs/promises'
+import { decrypt } from './crypt-utils.mjs'
+
+let serviceAccount
+try {
+  serviceAccount = JSON.parse(`${await readFile('./fcm-cert.json')}`)
+} catch (e) {
+  serviceAccount = JSON.parse(`${decrypt(await readFile('./fcm-cert'))}`)
+}
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+})
 
 const CACHE_MS = 600000 /* 10 minutes */
 
@@ -140,10 +154,15 @@ for (const key of ['rooms', 'titles', 'degrees', 'subjects', 'specialities', 'te
   })
 }
 
-db.on('update', (update) => {
+db.on('update', async (update) => {
   const hash = update.get('hash')
-  // TODO : Push notification using Pushy.me/FCM
-  console.log(hash)
+  const channel = admin.messaging()
+  await channel.send({
+    data: {
+      hash,
+      type: 'udpdate'
+    }
+  })
 })
 
 // NOTE: Check the updates at start and periodically
