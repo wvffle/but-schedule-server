@@ -8,19 +8,14 @@ import dotenv from 'dotenv'
 import db from './models/index.js'
 import { checkUpdates } from './parser.mjs'
 import admin from 'firebase-admin'
-import { readFile } from 'fs/promises'
-import { decrypt } from './crypt-utils.mjs'
-
-let serviceAccount
-try {
-  serviceAccount = JSON.parse(`${await readFile('./fcm-cert.json')}`)
-} catch (e) {
-  serviceAccount = JSON.parse(`${decrypt(await readFile('./fcm-cert'))}`)
-}
+import serviceAccount from './fcm-cert.json'
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
 })
+
+// TODO: Remove after tests
+// await admin.messaging().send({ data: { type: 'update' }, topic: 'updates' })
 
 const CACHE_MS = 600000 /* 10 minutes */
 
@@ -160,8 +155,9 @@ db.on('update', async (update) => {
   await channel.send({
     data: {
       hash,
-      type: 'udpdate'
-    }
+      type: 'update'
+    },
+    topic: 'updates'
   })
 })
 

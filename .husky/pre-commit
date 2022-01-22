@@ -1,6 +1,0 @@
-#!/bin/sh
-. "$(dirname "$0")/_/husky.sh"
-. "$(dirname "$0")/../.env"
-
-node "$(dirname "$0")/../scripts/prepare-fcm.mjs"
-git add "$(dirname "$0")/../fcm-cert"
