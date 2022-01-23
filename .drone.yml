@@ -1,0 +1,19 @@
+---
+kind: pipeline
+type: ssh
+name: default
+
+server:
+  host: lxc-wvffle
+  user: root
+  ssh_key:
+    from_secret: kvm_ssh_key
+
+steps:
+  - name: deploy
+    commands:
+      - cd ~/web/but-schedule-server
+      - forever stop schedule 2> /dev/null || echo "Schedule server is not running."
+      - git pull
+      - forever start -a --uid "schedule" index.mjs
+      - echo "Successfully started schedule server."
