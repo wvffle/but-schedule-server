@@ -3,6 +3,9 @@ kind: pipeline
 type: ssh
 name: default
 
+clone:
+  disable: true
+
 server:
   host: lxc-wvffle
   user: root
