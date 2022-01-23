@@ -7,8 +7,10 @@ clone:
   disable: true
 
 server:
-  host: lxc-wvffle
-  user: root
+  host:
+    from_secret: lxc_host
+  user:
+    from_secret: lxc_ssh_user
   ssh_key:
     from_secret: kvm_ssh_key
 
