@@ -30,7 +30,6 @@
   },
   "scripts": {
     "start": "node index.mjs",
-    "build": "sequelize-cli db:migrate",
-    "prepare": "husky install"
+    "build": "sequelize-cli db:migrate"
   }
 }
