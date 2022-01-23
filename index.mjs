@@ -14,7 +14,7 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
 })
 
-// TODO: Remove after tests
+// TODO [$61ec9ca6f346c6071f53a51c]: Remove after tests
 // await admin.messaging().send({ data: { type: 'update' }, topic: 'updates' })
 
 const CACHE_MS = 600000 /* 10 minutes */
