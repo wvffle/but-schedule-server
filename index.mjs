@@ -170,7 +170,7 @@ Promise.resolve().then(async () => {
 })
 
 try {
-  await app.listen(process.env.PORT ?? 2137, '0.0.0.0')
+  await app.listen(process.env.PORT ?? 2137)
   app.blipp()
 
   console.log(`server is running on ${app.server.address().port}`)
