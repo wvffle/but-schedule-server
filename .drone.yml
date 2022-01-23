@@ -20,5 +20,6 @@ steps:
       - cd /root/web/but-schedule-server
       - forever stop schedule 2> /dev/null || echo "Schedule server is not running."
       - git pull
+      - yarn install
       - PORT=3001 forever start -a --uid "schedule" index.mjs
       - echo "Successfully started schedule server."
