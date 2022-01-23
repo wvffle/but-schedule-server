@@ -16,9 +16,6 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
 })
 
-// TODO [#4]: Remove after tests
-// await admin.messaging().send({ data: { type: 'update' }, token: 'cVX3kbypS0-hDfbK-N6Yuy:APA91bHVf0iAF1N8Uxu4n7F4SYrbkAnHQPiv66Gb9k7NM5PqFDGF0GXEnuAvE61SbdPVTtlzN5by0DENsSGdDRC4mtzl6U1gpaX-v_Bs8qYxPQRXYCfGc1ZbSEdiiL33ZXYiV16wQ6Jx' })
-
 const CACHE_MS = 600000 /* 10 minutes */
 
 dotenv.config()
