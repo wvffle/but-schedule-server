@@ -17,7 +17,7 @@ server:
 steps:
   - name: deploy
     commands:
-      - cd ~/web/but-schedule-server
+      - cd /root/web/but-schedule-server
       - forever stop schedule 2> /dev/null || echo "Schedule server is not running."
       - git pull
       - forever start -a --uid "schedule" index.mjs
